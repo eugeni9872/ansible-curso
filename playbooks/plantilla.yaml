@@ -1,0 +1,13 @@
+# Contra que maquina/entornos vamos a trabajar
+- hosts:
+    # El usuario con el que nos vamos a conectar
+    remote_user:
+    # Listado de todas las tareas a realizar en los entornos
+    tasks:
+    #Listado de tareas que se ejecutaran bajo ciertas condiciones(cuando ocurren unos eventos)
+    handlers:
+    # Decidir el orden de los entornos en el que se van a ir ejecutando las tareas
+    order: inventary | reverse_inventary | sorted | reverse_sorted | suffle
+    # Variables que usar en las tareas.
+    vars:
+    
