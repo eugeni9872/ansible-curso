@@ -1,0 +1,48 @@
+# Archivo de Inventario formato YAML
+#
+# all:
+#   hosts: <- maquinas sueltas 
+#   children:<- Especificar SUBGRUPOS
+#       hosts: <- maquinas sueltas
+#       children: <- Mas subgrupos
+#       vars:
+#   vars:
+
+
+# Esta etiqueta (all) la ponemos siempre
+all:
+    # Permite especificar entornos que se encuentran dentro de un grupo (en este caso del grupo all)
+    hosts:
+        # Máquina, entorno...
+        proxy.curso.es:
+            # Dentro de una máquina puedo definir variables
+            so: freebsd
+    # Permite especificar grupos que se encuentran dentro de otro grupo (en este caso del grupo all)
+    children:
+        servidores_aplicaciones:
+            hosts:
+                # En los nombres de los host podemos poner patrones
+                weblogic0[0:9].curso.es:
+                    so: rhel
+                    #weblogic00.curso.es:
+                    #weblogic01.curso.es:
+                    # ...
+                    #weblogic09.curso.es:
+        servidores_base_datos:
+            children:
+                servidores_mysql:
+                    hosts:
+                        mysql01.prod.curso.es:
+#                            so: ubuntu
+                servidores_oracle:
+                    hosts:
+                        oracle01.prod.curso.es:
+                            so: debian
+            # Lo que ponemos dentro de la etiqueta vars aplica a todas las máquinas/entornos de un grupo            
+            vars:
+                so: ubuntu
+            
+        servidores_web:
+            hosts:
+                nginx.prod.curso.es:
+# Tanto hosts como children son opcionales

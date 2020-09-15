@@ -1,0 +1,339 @@
+  # PLANTILLA DE PLAYBOOK
+  
+  # Para ejecutar nuestro playbook:
+  #  > ansible-playbook -i <fichero_inventario> <fichero_playbook>
+  
+  # Contra qué máquinas/entornos vamos a trabajar
+- hosts: localhost
+  # Para desactivar Gathering Facts, lo pondriamos a 'False'
+  gather_facts: True
+      # Nota: Para ver las características de una máuina también podemos ejecutar desde terminal:
+      # > ansible localhost -m setup
+  # Decidir el usuario con el que conectarnos a un entorno
+  remote_user: root
+  # Decidir el orden de los entornos en el que se van a ir ejecutando las tareas
+  order: inventory 
+         # inventory | reverse_inventory | sorted | reverse_sorted | suffle
+  
+    # También podré configurar sobre cuántos entornos quiero operar simultaneamente.
+    # Esta info no viene en este fichero
+  # Variables que luego utilizar en las tareas
+  vars:
+    # Variable simple
+    puerto: 8080
+    # Variables complejas (con estructura jerarquica)
+    configuracion:
+      nginx:
+        puerto: 80
+        ssl: false
+      apache:
+        puerto: 
+          # Esto es una lista
+          - 443
+          - 9443
+        ssl: true
+        certificado: ruta al fichero del certificado
+  # Listado de todas las tareas que queriamos realizar en los entornos 
+  tasks:
+
+    # Tarea básica que muestra un mensaje por pantalla
+    - name: 1- Inicialización
+      debug: 
+        msg: Inicialización de nuestro playbook
+
+##############################################################################################
+#   VARIABLES
+##############################################################################################
+
+    # Tarea básica que muestra un mensaje por pantalla, usando variables
+    - name: 2- Mostrar valor de variable
+      debug: 
+        # Cuando usamos variables, y por ende utilizamos la doble llave, tenemos que poner la linea entera entre comilla doble
+        msg: "Mi variable puerto tiene el valor asignado: {{ puerto }}"
+
+    # Tarea básica que muestra un mensaje por pantalla, escapando llaves
+    - name: 3- Poder generar una doble llave en un texto
+      debug: 
+        # Para escapar la doble llave, comenzamos la lineacon la palabra !unsafe
+        msg: !unsafe "Para obtener el valor de una variable, debo utilizar la sintaxis: {{ puerto }}"
+
+    # Tarea básica que muestra un mensaje por pantalla, usando variables jerarquicas
+    - name: 4- Mostrar valor de variable jerarquica
+      debug: 
+        # Cuando usamos variablesjerarquicas utilizamos un punto '.' para bajar de nivel dentro de la jerarquia
+        msg: "Mi variable puerto tiene el valor asignado: {{ configuracion.apache.puerto }}"
+
+    # Tarea básica que muestra un mensaje por pantalla, usando variables
+    - name: 5- Redefinir el valor de una variable
+      debug: 
+        msg: "Mi variable puerto AHORA tiene el valor asignado: {{ puerto }}"
+      # Refedinir el valor de una variable previamente creada, o crear variables nuevas a nivel de tarea
+      vars:
+        puerto: 9999
+
+    # Tarea básica que muestra un mensaje por pantalla, usando variables de lista
+    - name: 6- Mostrar valor de variable de lista
+      debug: 
+        # Cuando usamos variables de lista utilizamos la doble llave
+        msg: "El segundo puerto del apache es: {{ configuracion.apache.puerto[1] }}"
+
+    # Tarea que muestre los facts de nuestras maquinas
+    - name: 7- Mostrar características de las maquinas
+      debug: 
+        # La variable ansible_facts cambiará para cada entorno en el que se esté ejecutando el playbook
+        msg: >
+          "Sistema operativo: {{ ansible_facts.distribution }} "
+          "version: {{ ansible_facts.distribution_version }}"
+
+##############################################################################################
+#   CONDICIONALES
+##############################################################################################
+    # Tarea que se ejecuta bajo ciertas condiciones
+    - name: 8- Tarea que se ejecuta solamente en máquinas Ubuntu
+      debug: 
+        msg: "Esta maquina si es UBUNTU: {{ ansible_facts.distribution }}"
+      # Me permnite determinar cuando se debe ejecutar la tarea (es como un if)
+      when: ansible_facts.distribution == 'Ubuntu'
+      #vars: Variables a nivel de tarea
+
+    - name: 9- Tarea que se ejecuta solamente en máquinas Redhat
+      debug: 
+        msg: "Esta maquina si es REDHAT: {{ ansible_facts.distribution }}"
+      # Me permnite determinar cuando se debe ejecutar la tarea (es como un if)
+      when: ansible_facts.distribution == 'Redhat'
+
+    # Tarea condicional COMPUESTAS
+    - name: 10- Tarea que se ejecuta solamente en máquinas con UBUNTU con versión del so > 16
+      debug: 
+        msg: "Esta maquina si es UBUNTU: {{ ansible_facts.distribution }} {{ ansible_facts.distribution_major_version }}"
+      # Me permnite determinar cuando se debe ejecutar la tarea (es como un if)
+      #when: ansible_facts.distribution == 'Ubuntu' and ansible_facts.distribution_major_version > "16"
+      when: 
+        # Esta lista se procesa como un AND
+        - ansible_facts.distribution == 'Ubuntu'
+        - ansible_facts.distribution_major_version > "16"
+      #vars: Variables a nivel de tarea
+    
+    # Tarea básica que al ejecutarse, pide a su vez que se ejecute otra tarea (mediante INVOCACION DIRECTA)
+    - name: 11- Tarea que dispara otra tarea (handler)
+      debug: 
+        msg: "HAGO LO QUE SEA, y si se cambia, lanzo la tarea Formatear disco"
+      # INVOCACION DIRECTA: Solo se ejecutará si la tarea 11 ha cambiado algo
+      # En este caso, como la tarea debug no cambia nada, no se llama a la nueva tarea
+      notify: Formatear Disco
+
+    # Tarea básica que al ejecutarse, pide a su vez que se ejecute otra tarea (mediante INVOCACION DIRECTA)
+    - name: 12- Tarea que dispara otra tarea (handler)
+      debug: 
+        msg: "HAGO LO QUE SEA, y si se cambia, lanzo la tarea Formatear disco"
+      # Este parametro permite determina cuando la tarea se marca como que SI ha cambiado algo
+      # Aqui pondriamos una condicion. Si la condición vale True, la tarea se marcara como CHANGED
+      changed_when: True
+      # INVOCACION DIRECTA: Solo se ejecutará si la tarea 11 ha cambiado algo
+      # En este caso, como la tarea debug SI VA A CAMBIAR, por lo que SI se llama a la nueva tarea
+      notify: Formatear Disco
+
+    # Tarea básica que al ejecutarse, pide a su vez que se ejecute otra tarea (mediante INVOCACION DIRECTA)
+    - name: 13- Tarea que dispara un evento
+      debug: 
+        msg: "HAGO LO QUE SEA, y si se cambia, lanzo la tarea Formatear disco"
+      # Este parametro permite determina cuando la tarea se marca como que SI ha cambiado algo
+      # Aqui pondriamos una condicion. Si la condición vale True, la tarea se marcara como CHANGED
+      changed_when: True
+      # NO es INVOCACION DIRECTA
+      # En este caso invocamos a un EVENTO
+      # Todos los handler subscritos al evento, se ejecutarán
+      notify: FORMATEAR
+      
+  # Basados en tags manuales -> FILTRO
+      # Al ejecutar un playbook podemos pedir que SOLO se ejecute 
+      # tareas que tenga asigandas unos determinados tags.
+      # > ansible-playbook <params...> --tags <tags>
+      # > ansible-playbook <params...> --skip-tags <tags>
+    - name: FILTRO 1 - Instalacion
+      debug:
+        msg: "Soy una tarea de instalacion"
+      tags: 
+        - instalacion
+
+
+    - name: FILTRO 2 - actualizacion
+      debug:
+        msg: "Soy una tarea de actualizacion"
+      tags: 
+        - actualizacion
+        
+    - name: FILTRO 3 - INSTALACION Y ACTUALIZACION
+      debug:
+        msg: "Soy una tarea de instalacion y actualizacion"
+      tags: 
+        - instalacion
+        - actualizacion
+        
+        
+##############################################################################################
+#   CONTROL DEL ESTADO DE EJECUCION DE TAREAS
+##############################################################################################
+  
+    # Tarea que permite determinar cuando una tarea se marca como que ha realizado cambios: CHANGED
+    - name: 14- Crear un fichero con un contenido 
+      shell: 
+        cmd: exit 9
+      # Permite almacenar la informacion asociada al proceso que se ejecuta en la maquina
+      # por nuestro modulo(shell).
+      register: resultado
+        # Nos dara informacion como:
+          # .rc -> Codigo de respuesta
+          # .stdout -> Salida estandar
+          # .stderr -> Salida de error
+      #changed_when: True
+      failed_when: resultado.rc > 10
+      changed_when: resultado.rc == 0
+      
+
+    - name: 15- Mostrar info del proceso registrar
+      debug: 
+        msg: "{{ resultado }}"
+
+    - name: ULTIMA TAREA
+      debug: 
+        msg: "HEMOS ACABADO LAS TAREAS NORMALES"
+
+    - name: 16- Comprobar puerto ssh 
+      shell: 
+        cmd: netstat -ltn | grep :22
+      # Permite almacenar la informacion asociada al proceso que se ejecuta en la maquina
+      # por nuestro modulo(shell).
+      #register: resultado_puerto
+      #failed_when: "resultado_puerto.stdout is search('.*LISTEN.*')" 
+      failed_when: "'LISTEN' in resultado_puerto.stdout" 
+      register: resultado_puerto
+      changed_when: False
+      ignore_errors: True
+      
+      
+    - name: 17- Ejecutar solo cuando la tarea 16 falló
+      debug: 
+        msg: "La tarea 16 FALLÓ"
+        # Determinar el estado de ejecucion de una tarea
+          # is failed -> La tarea fallo
+          # is succeded -> La tarea fue bien
+          # is changed -> La tarea realizo cambios
+          # is skipped -> La tarea se solto(no entro por el when)
+          
+        # Esto aplica a todas las variables, no solo a variables con resultado
+          # is defined -> Si la variable existe
+          # is undefined -> Si la variable no existe
+          
+      when: resultado_puerto is failed
+      
+      
+      
+##############################################################################################
+# BUCLES
+##############################################################################################
+      
+    - name: 18- Listado IPsv4
+      debug: 
+        msg: "IP:{{item}}"
+      loop: "{{ ansible_facts.all_ipv4_addresses }}"
+
+        
+    - name: 19- CPU Info
+      debug: 
+        msg: "CPU Info: {{item}}"
+      loop: "{{ ansible_facts.processor }}"
+      loop_control:
+        index_var: numero
+      when: (numero+1) % 3 == 0 
+  
+  
+  
+  
+  ##############################################################################################
+  # BLOQUES
+  ##############################################################################################
+    
+    # A nivel de bloques podemos aplicar: WHEN, IGNORE_ERRORS, VARS
+    
+    - name: Tarea en bloque
+      block:
+        - name: Tarea 1 del bloque
+          debug:
+            msg: "Tarea 1 del bloque"
+            
+        - name: Tarea 2 del bloque
+          debug:
+            msg: "Tarea 2 del bloque"
+            
+        - name: Tarea 3 del bloque
+          debug:
+            msg: "Tarea 3 del bloque"
+          
+      when: ansible_facts.distribution == 'Ubuntu'
+      ignore_errors: True
+
+  
+  
+    - name: Tarea en bloque SEGUNDO - CONTROL ERRORES
+      # Try
+      block:
+        - name: Tarea que funciona bien
+          debug:
+            msg: "Hola, funciono bien"
+            
+        - name: Tarea que funciona mal
+          shell:
+            cmd: exit 0
+            
+        - name: Tarea que ya no se ejecuta por haber aparecido un error
+          debug:
+            msg: "YO NO ME EJECUTO"
+      # Catch 
+      rescue:
+        - name: Tarea que se ejecuta por haber aparecido un error
+          debug:
+            msg: "Yo me ejecuto por haber aparecido un error y limpiar todo"
+        
+        # Finally
+      always:
+        - name: Tarea que se ejecuta siempre despues del bloque
+          debug:
+            msg: "Yo me ejecuto por haber aparecido un error y limpiar todo"
+  
+
+##############################################################################################
+# TRABAJANDO CON JINJA!!!
+##############################################################################################
+
+    - name: Tarea que usa plantilla jinja para control del case
+      debug:
+        msg: "El valor del texto es {{ texto | upper | title }}"
+      vars:
+        texto: Soy el texto de la variable
+        
+    - name: Tarea que usa plantilla jinja para espacios en blanco
+      debug:
+        msg: "Puertos --{{ puertos.nginx  }}--"
+      vars:
+        puertos: 
+          nginx: 8000
+  
+        texto: "  Soy el texto de la variable "
+        
+        
+        
+  # LOS HANDLERS SOLO SE EJECUTAN 1 VEZ y después de todas las tareas!!!
+  # Listado de tareas que se ejecuran bajo ciertos condiciones (cuando ocurren unos eventos)
+  handlers:
+    - name: Formatear Disco
+      debug: 
+        msg: Estoy formateando el disco !!!
+      # NOS PERMITE DEFINIR UN EVENTO
+      listen: FORMATEAR
+    
+    - name: Post-Formatear Disco
+      debug: 
+        msg: Estoy haciendo cosas después de formatear el disco !!!
+      listen: FORMATEAR
+
