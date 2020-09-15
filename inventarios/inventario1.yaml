@@ -1,34 +1,48 @@
-all: 
-    # Permite especificar entornos que se encuentra en un grupo.
-    hosts: 
-        proxy: 
-            proxy.curso.es:
-                # Dentro de una maquina se puede definir variables
-                so: freebsd
-    # Permite especificar grupos que se encuentra dentro de otro grupo.
-    children: 
+# Archivo de Inventario formato YAML
+#
+# all:
+#   hosts: <- maquinas sueltas 
+#   children:<- Especificar SUBGRUPOS
+#       hosts: <- maquinas sueltas
+#       children: <- Mas subgrupos
+#       vars:
+#   vars:
+
+
+# Esta etiqueta (all) la ponemos siempre
+all:
+    # Permite especificar entornos que se encuentran dentro de un grupo (en este caso del grupo all)
+    hosts:
+        # Máquina, entorno...
+        proxy.curso.es:
+            # Dentro de una máquina puedo definir variables
+            so: freebsd
+    # Permite especificar grupos que se encuentran dentro de otro grupo (en este caso del grupo all)
+    children:
         servidores_aplicaciones:
             hosts:
-            
-                weblogic[0:9].curso1.es:  # [0:9] -> patrones -> weblogic00, weblogic01...
+                # En los nombres de los host podemos poner patrones
+                weblogic0[0:9].curso.es:
                     so: rhel
-        servidores_bbdd:
+                    #weblogic00.curso.es:
+                    #weblogic01.curso.es:
+                    # ...
+                    #weblogic09.curso.es:
+        servidores_base_datos:
             children:
-                # Agrupamos los entornos por tipo.
                 servidores_mysql:
                     hosts:
-                        mysql01.curso1.es:
+                        mysql01.prod.curso.es:
+#                            so: ubuntu
                 servidores_oracle:
                     hosts:
-                        oracle1.curso1.es:
-                            so: debian # Podemos modificar las variables de manera directa o herencia
-            # Aplica a todas las maquinas del grupo/subgrupos servidores_bbdd
+                        oracle01.prod.curso.es:
+                            so: debian
+            # Lo que ponemos dentro de la etiqueta vars aplica a todas las máquinas/entornos de un grupo            
             vars:
                 so: ubuntu
-        servidores_web: 
-            hosts:
-                nginx.prod.curso1.es:
-                    so: ubuntu
-            children:
             
+        servidores_web:
+            hosts:
+                nginx.prod.curso.es:
 # Tanto hosts como children son opcionales
