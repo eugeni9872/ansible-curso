@@ -1,0 +1,11 @@
+# Actualizar repositiors de software
+- name: Actualizar repositorios
+  apt: update_cache=yes
+
+# Instalacion de paquetes
+- name: Asegurarme que tengo los paquetes necesarios
+  #apt: "name={{ item }} state=present"
+  apt: 
+    name: "{{ item }}"
+    state: present
+  loop: "{{ paquetes_requeridos }}"

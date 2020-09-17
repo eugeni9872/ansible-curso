@@ -1,0 +1,3 @@
+nginx_port: 80
+nginx_secure_port: 443
+nginx_ajp_port: 9080

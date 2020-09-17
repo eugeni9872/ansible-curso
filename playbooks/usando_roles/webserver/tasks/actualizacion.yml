@@ -1,0 +1,35 @@
+# Actualizar nginx
+- name: Asegurarme que tengo nginx parado!!
+  service: name=nginx state=stopped
+  tags:
+    - actualizar
+    - nginx
+  register: nginx_parado
+  
+# Actualzar nginx
+- name: Asegurarme que tengo nginx en la última versión
+  apt: name=nginx state=latest
+  tags:
+    - actualizar
+    - nignx
+    
+# Actualzar curl
+- name: Asegurarme que tengo curl en la última versión
+  apt: name=curl state=latest
+  tags:
+    - actualizar
+    - curl
+    
+# Actualzar git
+- name: Asegurarme que tengo git en la última versión
+  apt: name=git state=latest
+  tags:
+    - actualizar
+    - git
+
+# Actualzar ufw
+- name: Asegurarme que tengo ufw en la última versión
+  apt: name=ufw state=latest
+  tags:
+    - actualizar
+    - ufw

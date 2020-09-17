@@ -1,0 +1,39 @@
+# Este es el fichero de configuracion
+
+puerto={{ puerto }}
+servidor={{ servidor | lower }}
+rutas={{ rutas }}
+
+# rutas=ruta1-ruta2
+rutas={{ rutas[0] }}-{{ rutas[1] }}
+
+[rutas]
+{% for ruta in rutas %}
+-{{ ruta }}
+{% endfor %}
+
+{% if puerto_seguro %}
+ssl=ON
+{% endif %}
+
+
+rutas={% for ruta in rutas %}{{ ruta }}{% if not loop.last %} | {% endif %}{% endfor %}
+
+LETRA     POSICION      PRIMERA      ULTIMA     NUMTOTAL     ANTERIOR    SIGUIENTE
+{% for letra in letras %}
+{{ letra }}            {{ loop.index }}            {{ loop.first }}           {{ loop.last }}              {{ loop.length }}     {{ loop.index0 }}     {% if loop.previtem is defined %} {{ loop.previtem }} {% endif %}
+       ---------
+{% endfor %}
+
+
+# Para cada servidor:
+server=port
+
+{% for server in servers %}
+{{ server }}={{ ports[loop.index0] }}
+{% endfor %}
+
+
+{% for serverInfo in servers | zip(ports) %}
+{{ serverInfo[0] }}={{ serverInfo[1] }}
+{% endfor %}

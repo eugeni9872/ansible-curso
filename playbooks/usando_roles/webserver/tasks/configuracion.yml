@@ -1,0 +1,16 @@
+
+# Configurar NGINX
+# GENERAR un fichero de configuración <- CONMIGO -> TEMPLATE JINJA
+- name: Generar el fichero de configuración de nginx
+  template:
+    dest: /etc/nginx/conf.d/mi_web.conf
+    src: templates/conf.template
+    mode: 0400
+#      notify: CONFIGURACION_CAMBIADA # Esta solucion tiene problemas...ver nota en handlers
+  register: configuracion
+  
+# CARGAR UNA WEB DE UN GIT <- CONMIGO
+- name: Clonar la web
+  git:
+    repo: "{{ nginx_web_repo }}"
+    dest: "{{ nginx_web_path }}"

@@ -1,0 +1,21 @@
+---
+# Revisar el puerto: 80
+- name: Asegurarme que el puerto WEB está funcionando
+  wait_for: 
+    host: "{{ web_test_server_name }}"
+    port: "{{ web_test_port }}"
+    timeout: "{{ web_test_timeout }}"  # Espero un poco a ver si el puerto conecta
+    state: started                     # El puerto debe estar abierto para escucha
+    delay: 2                           # Espera un par de segundos antes de comenzar a mirar si está abierto
+    connect_timeout: 2                 # Espera un par de segundos entre intentos
+
+# Comprobación de que el servidor devuelve contenido: COHERENTE!!!!
+- name: Comprobar que EL SERVIDOR WEB contesta algo adecuado
+  uri:
+    url: "{{ web_test_connection_protocol }}://{{ web_test_server_name }}:{{ web_test_port }}"
+    return_content: yes
+    status_code: "{{ web_test_response_code }}"       # Conexión http exitosa
+    timeout: "{{ web_test_timeout }}"                 # Si en 10 seg no lo tienes, falla
+  register: conexion
+  failed_when:  web_test_message not in conexion.content
+  

@@ -1,0 +1,41 @@
+
+PLAYBOOK
+
+    Tarea instalación nginx
+    Tarea de inicio del servicio nginx (supediata a la instalacion)
+    Tarea de validación
+
+------
+tasks:
+    INSTALACION -> SERVICIO
+    flush_Handlers   <- EVITA USAR UN FLUSH_HANDLERS (BP)
+    VALIDACION
+    
+handler:
+    SERVICIO
+    
+------
+tasks:
+    INSTALACION (register: instalacion)
+    SERVICIO (when instalacion is changed)
+    VALIDACION
+
+------
+tasks:
+    INSTALACION (nginx)-> SERVICIO
+
+post_tasks:
+    VALIDACION nginx
+    
+handler:
+    SERVICIO
+    
+------
+pre-tasks:
+    INSTALACION (curl) -> SERVICIO
+
+tasks:
+    VALIDACION nginx
+    
+handler:
+    SERVICIO

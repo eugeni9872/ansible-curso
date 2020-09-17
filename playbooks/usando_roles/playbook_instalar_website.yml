@@ -1,0 +1,18 @@
+## USO ESPECIFICO. Un despliegue que voy a hacer... en los servidores de desarrollo
+#                                                   de mi web principal en todos los servidores
+
+# ansible-playbook -i ... playbook.YO.yml --tags test
+# ansible-playbook -i ... playbook.YO.yml --skip-tags test
+- hosts: all
+  remote_user: root
+  
+  roles:
+    - webserver
+    - instalacion_web
+    - role: web_test
+      vars:
+        web_test_server_name: "{{ nginx_server_name }}"
+        web_test_port: "{{ nginx_server_port }}"
+      tags:
+        - test
+        #web_test_message: CHANGE_ME

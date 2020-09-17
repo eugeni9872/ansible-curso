@@ -1,0 +1,54 @@
+  # PLANTILLA DE PLAYBOOK
+  
+  # Para ejecutar nuestro playbook:
+  #  > ansible-playbook -i <fichero_inventario> <fichero_playbook>
+  
+  # Contra qué máquinas/entornos vamos a trabajar
+- hosts: localhost
+  # Para desactivar Gathering Facts, lo pondriamos a 'False'
+  gather_facts: False
+
+  # Decidir el usuario con el que conectarnos a un entorno
+  remote_user: root
+
+  vars:
+    puerto: 9090
+    servidor: WEB_INTERNA
+    rutas:
+      - /tmp
+      - /otra/ruta
+      - /otra/ruta/mas
+    letras:
+      - a
+      - b
+      - c
+      - d
+      - e
+    puerto_seguro: False
+    
+    ports:
+      - 80
+      - 81
+      - 82
+    servers:
+      - server1
+      - server2
+      - server3
+    
+  tasks:
+  
+    # Me permite generar un archivo PERSONALIZADO en el entorno de destino,
+    # Partiendo de una plantilla: TEMPLATE
+    - template:
+        src: template.txt
+        dest: /tmp/config.txt
+      #loop: "{{ rutas }}"
+      #name:
+      #vars:
+      #notify:
+      #register:
+      #when:
+      #loop:
+      #changed_when:
+      #failed_when:
+      #tags:

@@ -1,0 +1,15 @@
+---
+
+- name: Crear carpeta destino
+  file:
+    path: "{{db_role_file_path}}"
+    state: directory
+
+
+    
+- name: Crear la plantilla
+  template:
+    dest: "{{db_role_file_path}}server.xml"
+    src: templates/template.conf
+    mode: 0400
+    

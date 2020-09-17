@@ -5,6 +5,16 @@
   
   # Contra qué máquinas/entornos vamos a trabajar
 - hosts: localhost
+# all (*) -> Todas las maquinas del inventario (teniendo en cuenta subgrupos)
+# hostname -> Busca en el inventario (donde quiera que esté) ese hostname
+# server1:server2 (server1, server2) -> Se ejecuta el playbook para ambos servidores
+# webservers -> Todos los servidores de un grupo (incluyendo los subgrupos)
+# mysqlservers:oracleservers -> Todos los servidores de ambos grupos
+# webservers:!produccion -> Todos los webservers que NO sean de produccion
+# webserves:&produccion -> Todos los webservers que SEAN de produccion
+
+
+
   # Para desactivar Gathering Facts, lo pondriamos a 'False'
   gather_facts: True
       # Nota: Para ver las características de una máuina también podemos ejecutar desde terminal:
@@ -88,6 +98,9 @@
 ##############################################################################################
 #   CONDICIONALES
 ##############################################################################################
+
+  # BASADOS EN UNA CONDICION GENERICA
+  
     # Tarea que se ejecuta bajo ciertas condiciones
     - name: 8- Tarea que se ejecuta solamente en máquinas Ubuntu
       debug: 
@@ -108,12 +121,15 @@
         msg: "Esta maquina si es UBUNTU: {{ ansible_facts.distribution }} {{ ansible_facts.distribution_major_version }}"
       # Me permnite determinar cuando se debe ejecutar la tarea (es como un if)
       #when: ansible_facts.distribution == 'Ubuntu' and ansible_facts.distribution_major_version > "16"
+      # Igual que un AND podríamos poner un OR
       when: 
         # Esta lista se procesa como un AND
         - ansible_facts.distribution == 'Ubuntu'
         - ansible_facts.distribution_major_version > "16"
       #vars: Variables a nivel de tarea
     
+  # BASADOS EN SI UNA TAREA REALIZA O NO CAMBIOS
+
     # Tarea básica que al ejecutarse, pide a su vez que se ejecute otra tarea (mediante INVOCACION DIRECTA)
     - name: 11- Tarea que dispara otra tarea (handler)
       debug: 
@@ -144,185 +160,209 @@
       # En este caso invocamos a un EVENTO
       # Todos los handler subscritos al evento, se ejecutarán
       notify: FORMATEAR
-      
-  # Basados en tags manuales -> FILTRO
-      # Al ejecutar un playbook podemos pedir que SOLO se ejecute 
-      # tareas que tenga asigandas unos determinados tags.
-      # > ansible-playbook <params...> --tags <tags>
-      # > ansible-playbook <params...> --skip-tags <tags>
-    - name: FILTRO 1 - Instalacion
-      debug:
-        msg: "Soy una tarea de instalacion"
-      tags: 
+
+  # BASADOS EN TAGS MANUALES -> FILTRO
+    # A la hora de ejecutar un playbook, podemos pedir que SOLO se ejecuten las 
+    # tareas que tenga asignadas unas determinadas etiquetas
+    # > ansible-playbook <params.....>  --tags <tags-que-quiero-procesar> 
+    # > ansible-playbook <params.....>  --skip-tags <tags-que-quiero-procesar> 
+    - name: FILTRO 1 - INSTALACION
+      debug: 
+        msg: "Soy una tarea de instalación"
+      tags:
         - instalacion
 
-
-    - name: FILTRO 2 - actualizacion
-      debug:
-        msg: "Soy una tarea de actualizacion"
-      tags: 
+    - name: FILTRO 2 - ACTUALIZACION
+      debug: 
+        msg: "Soy una tarea de actualización"
+      tags:
         - actualizacion
-        
+
     - name: FILTRO 3 - INSTALACION Y ACTUALIZACION
-      debug:
-        msg: "Soy una tarea de instalacion y actualizacion"
-      tags: 
+      debug: 
+        msg: "Soy una tarea que instala y actualiza"
+      tags:
         - instalacion
         - actualizacion
-        
-        
+
 ##############################################################################################
-#   CONTROL DEL ESTADO DE EJECUCION DE TAREAS
+#   CONTROL DEL ESTADO DE EJECUCION DE TAREAS Y ALGO MAS DE VARIABLES
 ##############################################################################################
-  
-    # Tarea que permite determinar cuando una tarea se marca como que ha realizado cambios: CHANGED
-    - name: 14- Crear un fichero con un contenido 
+    
+    # Tarea que permite determinad CUANDO una tarea se marca como que ha realizado cambio. CHANGED
+    - name: 14- Crear o añade un contenido a un fichero
       shell: 
-        cmd: exit 9
-      # Permite almacenar la informacion asociada al proceso que se ejecuta en la maquina
-      # por nuestro modulo(shell).
-      register: resultado
-        # Nos dara informacion como:
-          # .rc -> Codigo de respuesta
+        cmd: exit 0
+      # Registre permite almacenar la información asociada al proceso que se 
+      # ejecuta en el entorno remoto por nuestro módulo
+      register: resultado_proceso
+        # Nos va a dar informacion como:
+          # .rc     -> Codigo de respuesta
           # .stdout -> Salida estandar
           # .stderr -> Salida de error
-      #changed_when: True
-      failed_when: resultado.rc > 10
-      changed_when: resultado.rc == 0
+          # .changed -> Indica si ha habido cambios
+          # .failed  -> Indica si ha habido errores
+      failed_when: resultado_proceso.rc > 10
+      changed_when: resultado_proceso.rc == 0
+
+    # Tarea que permite determinad CUANDO una tarea se marca como que ha realizado cambio. CHANGED
+    - name: 15- Mostrar información del proceso REGISTRADO
+      debug: 
+        msg: "{{ resultado_proceso }}"
+
+    # Tarea que permite determinad CUANDO una tarea se marca como que ha realizado cambio. CHANGED
+    - name: 16- Asegurar que el estado del puerto 22 no es LISTEN
+      shell: 
+        cmd: netstat -lnt | grep :22
+      # Trabajar con expresiones regulares  
+        # . -> Cualquier caracter
+        # [abc] -> ó a ó b ó c
+        # [0-9] -> Numero del 0 al 9
+        # [a-z] -> Letras de la a a la z
+        # [A-Z] -> Letras de la A a la Z
+        # [A-Za-z0-9ñá] -> Letras de la A a la Z, de la 'a' a la 'z'
+                          # numeros del 0 al 9, la ñ y la á
+        # abc -> a, b y después c
+        #
+        # MODIFICADORES DE OCURRENCIA
+          # ? -> OPCIONAL: Lo de antes puede aparecer o no
+                  # /? -> Puede haber barra no haber barra
+          # + -> Al menos 1
+                  # /+ -> Al menos una barra, pero puede haber muchas (INFINITAS)
+          # * -> Al menos 0
+                  # /* -> La barra puede no aparecer o aparecer infinitas veces
+          # {3} -> Tiene que aparecer 3 veces
+                  # [abc]{2} -> Validarían cosas como:
+                                # aa    ab    bb    ac    ca
+          # {3,7} -> Tiene que aparecer entre 3 y 7 veces
+          # {,7} -> Puede aparecer hasta 7 veces
+      # failed_when: "resultado_puerto.stdout is search('.* LISTEN .*')"
+          # SEARCH: CONTIENE UN PATRON
+      # failed_when: "resultado_puerto.stdout is match('.* LISTEN .*')"
+          # MATCH: VERIFIQUE EXACTAMENTE UN PATRON
+      # Esta es un asintaxis alternativa, pero OJO: No admite expresiones regulares
+      failed_when: "'LISTEN' in resultado_puerto.stdout"
+      register: resultado_puerto 
+      changed_when: False
+      ignore_errors: True
+
+    - name: 17- Tarea que se ejecuta solo si la tarea 16 falló
+      debug: 
+        msg: "La tarea 16 FALLÓ"
+      when: resultado_puerto is failed
+      # Determinar el estado de ejecución de una tarea pasada:
+        # is failed -> La tarea falló
+        # is succeded -> La tarea fue bien
+        # is changed -> La tarea realizó cambios
+        # is skipped -> La tarea se saltó (no entró por el when)
+        # 
+        # ESTO APLICA A TODAS LAS VARIABLES, NO SOLO A VARIABLES CON RESULTADOS DE PROCESO
+        # is defined -> Si la variable existe
+        # is undefined -> Si la variable no existe
+
+##############################################################################################
+#   BUCLES !
+##############################################################################################
+    - name: 18- Listado de IPsv4 que tiene mi maquina
+      debug: 
+        msg: "IP: {{ item }}"
+      loop: "{{ ansible_facts.all_ipv4_addresses }}"
+
+    - name: 19- Listado de CPUS (processor) que tiene mi maquina
+      debug: 
+        msg: "CPU info: {{ numero }}----{{ item }}"
+      # El when se aplica despues del loop:
+      # Es decir, se aplica de forma individual a cada elemento de la lista que se itera
+      when: (numero+1) % 3 == 0 
+      
+      loop: "{{ ansible_facts.processor }}"
+      loop_control:
+        index_var: numero
+        # NOTA: TODO:  Ver el resto de variables que podemos utilizar
+
+##############################################################################################
+#   TRABAJO CON BLOQUES
+##############################################################################################
+            
+    # A nivel de bloque podemos aplicar: WHEN, IGNORE_ERRORS, VARS
+    
+    - name: Tarea en bloque PRIMERA
+      block:
+
+        - name: Tarea 1 del bloque
+          debug: 
+            msg: "Tarea 1 del bloque"
+
+        - name: Tarea 2 del bloque
+          debug: 
+            msg: "Tarea 2 del bloque"
+
+        - name: Tarea 3 del bloque
+          debug: 
+            msg: "Tarea 3 del bloque"
+
+      when: ansible_facts.distribution == 'CentOS'
+      ignore_errors: True
+    
+    # A nivel de bloque podemos controlar ERRORES
+    - name: Tarea en bloque SEGUNDO - CONTROL ERRORES
+      block:
+
+        - name: Tarea que funciona bien
+          debug: 
+            msg: "Hola, funciono bien"
+
+        - name: Tarea que funciona mal
+          shell: 
+            cmd: exit 0
+
+        - name: Tarea que ya no se ejecuta por haber aparecido un error
+          debug: 
+            msg: "YO NO ME EJECUTO :'("
+      
+      rescue:
+        - name: Tarea que se ejecuta por haber aparecido un error
+          debug: 
+            msg: "YO ME EJECUTO PARA ARREGLAR EL DESAGUISADO!"
+      
+      always:
+        - name: Tarea que se ejecuta SIEMPRE despues del bloque, haya error o no
+          debug: 
+            msg: "YO ME EJECUTO EN CUALQUIER CASO"
       
 
-    - name: 15- Mostrar info del proceso registrar
+##############################################################################################
+#   TRABAJANDO CON NINJAS !!!!
+##############################################################################################
+    - name: Tarea utilizando plantillas JINJA para Control del CASE
       debug: 
-        msg: "{{ resultado }}"
-
+        msg: "El valor del texto es {{ texto | upper | lower | capitalize | title }}"
+      vars:
+        texto: Soy el texto de la variable
+            
+    - name: Tarea utilizando plantillas JINJA- Espacios en blanco
+      debug: 
+        msg: "El valor del texto es --{{ texto | trim }}--"
+      vars:
+        texto: "   Soy el texto de la variable   "
+            
+    - name: Tarea utilizando plantillas JINJA- Listas
+      debug: 
+        msg: "Puertos {{ puertos | sort | reverse | list | max }}"
+            # max min sum last first length
+      vars:
+        puertos:
+          - 80
+          - 8080
+          - 8443
+          - 9443
+          - 9080
+        
+        
     - name: ULTIMA TAREA
       debug: 
         msg: "HEMOS ACABADO LAS TAREAS NORMALES"
 
-    - name: 16- Comprobar puerto ssh 
-      shell: 
-        cmd: netstat -ltn | grep :22
-      # Permite almacenar la informacion asociada al proceso que se ejecuta en la maquina
-      # por nuestro modulo(shell).
-      #register: resultado_puerto
-      #failed_when: "resultado_puerto.stdout is search('.*LISTEN.*')" 
-      failed_when: "'LISTEN' in resultado_puerto.stdout" 
-      register: resultado_puerto
-      changed_when: False
-      ignore_errors: True
-      
-      
-    - name: 17- Ejecutar solo cuando la tarea 16 falló
-      debug: 
-        msg: "La tarea 16 FALLÓ"
-        # Determinar el estado de ejecucion de una tarea
-          # is failed -> La tarea fallo
-          # is succeded -> La tarea fue bien
-          # is changed -> La tarea realizo cambios
-          # is skipped -> La tarea se solto(no entro por el when)
-          
-        # Esto aplica a todas las variables, no solo a variables con resultado
-          # is defined -> Si la variable existe
-          # is undefined -> Si la variable no existe
-          
-      when: resultado_puerto is failed
-      
-      
-      
-##############################################################################################
-# BUCLES
-##############################################################################################
-      
-    - name: 18- Listado IPsv4
-      debug: 
-        msg: "IP:{{item}}"
-      loop: "{{ ansible_facts.all_ipv4_addresses }}"
-
-        
-    - name: 19- CPU Info
-      debug: 
-        msg: "CPU Info: {{item}}"
-      loop: "{{ ansible_facts.processor }}"
-      loop_control:
-        index_var: numero
-      when: (numero+1) % 3 == 0 
-  
-  
-  
-  
-  ##############################################################################################
-  # BLOQUES
-  ##############################################################################################
-    
-    # A nivel de bloques podemos aplicar: WHEN, IGNORE_ERRORS, VARS
-    
-    - name: Tarea en bloque
-      block:
-        - name: Tarea 1 del bloque
-          debug:
-            msg: "Tarea 1 del bloque"
-            
-        - name: Tarea 2 del bloque
-          debug:
-            msg: "Tarea 2 del bloque"
-            
-        - name: Tarea 3 del bloque
-          debug:
-            msg: "Tarea 3 del bloque"
-          
-      when: ansible_facts.distribution == 'Ubuntu'
-      ignore_errors: True
-
-  
-  
-    - name: Tarea en bloque SEGUNDO - CONTROL ERRORES
-      # Try
-      block:
-        - name: Tarea que funciona bien
-          debug:
-            msg: "Hola, funciono bien"
-            
-        - name: Tarea que funciona mal
-          shell:
-            cmd: exit 0
-            
-        - name: Tarea que ya no se ejecuta por haber aparecido un error
-          debug:
-            msg: "YO NO ME EJECUTO"
-      # Catch 
-      rescue:
-        - name: Tarea que se ejecuta por haber aparecido un error
-          debug:
-            msg: "Yo me ejecuto por haber aparecido un error y limpiar todo"
-        
-        # Finally
-      always:
-        - name: Tarea que se ejecuta siempre despues del bloque
-          debug:
-            msg: "Yo me ejecuto por haber aparecido un error y limpiar todo"
-  
-
-##############################################################################################
-# TRABAJANDO CON JINJA!!!
-##############################################################################################
-
-    - name: Tarea que usa plantilla jinja para control del case
-      debug:
-        msg: "El valor del texto es {{ texto | upper | title }}"
-      vars:
-        texto: Soy el texto de la variable
-        
-    - name: Tarea que usa plantilla jinja para espacios en blanco
-      debug:
-        msg: "Puertos --{{ puertos.nginx  }}--"
-      vars:
-        puertos: 
-          nginx: 8000
-  
-        texto: "  Soy el texto de la variable "
-        
-        
-        
   # LOS HANDLERS SOLO SE EJECUTAN 1 VEZ y después de todas las tareas!!!
   # Listado de tareas que se ejecuran bajo ciertos condiciones (cuando ocurren unos eventos)
   handlers:

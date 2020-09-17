@@ -1,0 +1,10 @@
+
+# Arrancar el """servicio""" de nginx
+- name: Asegurarme que reinicio nginx si hace falta
+  service: name=nginx state=restarted
+  when: configuracion is changed or nginx_parado is defined
+
+# Me asegura que si no he hecho un reinicio del servicio y por algun motivo esta parado
+# Se inicia
+- name: Asegurar que nginx quede arrancado
+  service: name=nginx state=started

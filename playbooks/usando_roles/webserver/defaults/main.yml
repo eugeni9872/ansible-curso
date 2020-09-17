@@ -1,0 +1,8 @@
+---
+nginx_web_path: /var/www
+nginx_port: 80
+nginx_server_name: CHANGE_ME
+nginx_user: nginx
+nginx_web_repo: CHANGE_ME
+nginx_test_message: CHANGE_ME
+nginx_version: latest

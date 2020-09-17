@@ -1,0 +1,93 @@
+  # PLANTILLA DE PLAYBOOK
+  
+  # Para ejecutar nuestro playbook:
+  #  > ansible-playbook -i <fichero_inventario> <fichero_playbook>
+  
+  # Contra qué máquinas/entornos vamos a trabajar
+- hosts: 172.17.0.2
+  # Para desactivar Gathering Facts, lo pondriamos a 'False'
+  gather_facts: False
+
+  # Decidir el usuario con el que conectarnos a un entorno
+  remote_user: root
+
+  # CUSTOM FACTS
+  # En nuestro entorno REMOTO:
+  #     /etc/ansible/facts.d
+  # Podemos tener ficheros que acaben con la extension .fact
+  # Los custom facts, nos vienen de vuelta desde un playbook,
+  # bajo la variable "ansible_local".
+  # Para cada fichero que tenga en la carpeta facts.d -> 
+  #   entrada dentro de ansible_local, con el nombre del fichero
+  #
+  # /etc/ansible/facts.d/instalar.fact
+  #   ansible_local.instalar
+  #
+  # Los archivos .fact, pueden ser:
+  #     Archivos NO EJECUTABLES: (Permisos)
+  #             El contenido del archivo se toma como valor del fact
+  #     Archivos EJECUTABLES: (Permisos)
+  #             Se ejecuta el archivo cuando se solicitan los facts
+  #             La respuesta del programa (que debe ser JSON)
+  #             Se establece como valor del fact
+  
+  ##################################################################
+  # CREACION DE CUSTOM FACTS
+  ##################################################################
+  
+  tasks:
+    
+    # Creación de un CUSTOM FACT constante
+    # Crear un directorio en la máquina con ruta: /etc/ansible/facts.d
+    - name: Crear directorio de CUSTOM FACTS en entorno remoto
+      file:
+        path: /etc/ansible/facts.d
+        state: directory
+    
+    # Crear un fichero con extensión .fact
+    # El contenido del fichero, con el valor del fact
+    - name: Copiar el fichero con el CUSTOM FACT en entorno remoto
+      copy:
+        src: mi_custom_fact.fact
+        dest: /etc/ansible/facts.d/mi_custom_fact.fact
+        mode: '644'
+    
+    # NOTA: Sobre JSON
+    #  
+    #  Formato de intercambio de información: JavaScript Object Notation
+    #  Los textos: Siempre entre comillas ->  "Soy un texto"
+    #  Los numeros: Los escribo tal cual  ->  4
+    #  Los valores logicos: true, false   -> true
+    #  Listas: Elementos separados por comas ',' y entre corchetes []
+    #           -> [  "Un texto" , 3 , true  ]
+    #  Diccionarios:
+    #      Son listas del tipo CLAVE:VALOR
+    #      La clave siempre tiene que ser un texto
+    #      El valor puede ser lo que sea
+    #      Los distinsto pares clave-valor se separan entre comas
+    #      La clave del valor se separa por ":"
+    #      Todo el diccionario debe ir entre llaves {}
+    #      En JSON Se igoran los ESPACIOS, TABULADORES Y RETORNOS DE CARRO
+    #  Ejemplo:
+    #---- JSON
+    #  {
+    #      "clave1": "valor de la clave 1" ,
+    #      "clave2": 87 ,
+    #      "clave3": true ,
+    #      "clave4": [   12,  true, 16 , "Un texto"   ] ,
+    #      "clave5": { "subclave1": 54 , "subclave2": false } 
+    #  }
+    #------- EQUIVALENTE EN YAML: 
+    #      clave1: valor de la clave 1 
+    #      clave2: 87 
+    #      clave3: true 
+    #      clave4:
+    #         - 12
+    #         - true
+    #         - 16
+    #         - Un texto
+    #      clave5: 
+    #         subclave1: 54
+    #         subclave2: false 
+
+    

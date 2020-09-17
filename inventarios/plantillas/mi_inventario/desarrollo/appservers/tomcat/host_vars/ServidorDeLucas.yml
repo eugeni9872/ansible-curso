@@ -1,0 +1,13 @@
+# ansible_host: Nombre o IP de mi entorno
+# ansible_port: Puerto para la conexión ssh
+# ansible_user: Usuario que uso para conectarme
+# ansible_password: Password que uso para conectarme
+                    # OJO: si paso contraseña, NUNCA la escribiría aqui en texto plano
+                    # USARIAMOS UN VAULT: Cifrar datos
+# ansible_ssh_private_key_file: Fichero con la clave privada que uso para conectarme
+
+ansible_host: 172.17.0.2
+
+
+nginx_port: 80
+nginx_server_name: tomcat.desa.curso.es

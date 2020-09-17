@@ -1,0 +1,6 @@
+{% for info in todo %}
+server{
+    listen          {{ info[0] }};
+    server_name     {{ info[1] }};
+}
+{% endfor %}

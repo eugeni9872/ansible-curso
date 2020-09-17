@@ -1,0 +1,6 @@
+---
+paquetes_requeridos:
+    - nginx
+    - curl
+    - git
+    - ufw

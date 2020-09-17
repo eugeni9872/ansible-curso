@@ -1,0 +1,90 @@
+  # PLANTILLA DE PLAYBOOK
+  
+  # Para ejecutar nuestro playbook:
+  #  > ansible-playbook -i <fichero_inventario> <fichero_playbook>
+  
+  # Contra qué máquinas/entornos vamos a trabajar
+- hosts: localhost
+  # Para desactivar Gathering Facts, lo pondriamos a 'False'
+  gather_facts: False
+
+  # Decidir el usuario con el que conectarnos a un entorno
+  remote_user: root
+
+  # Los pre-tasks on tareas que se ejecutan antes de las tareas
+  pre_tasks:
+
+    - debug:
+        msg: Esta es la primera PRETAREA
+      notify: Handler PRETAREA 1
+      changed_when: True
+  
+  # Una vez que terminan los pre_tasks , 
+  # todos los handlers de pretasks se ejecutan
+  
+  # Ahora se ejecutarían todos los roles
+  # roles:   <- PERO HA CAIDO EN DESUSO. NOS LIMITA BASTANTE
+  #   - role: instalacion
+  #   - role: verificacion
+  
+  # Los handlers de los roles NO SE EJECUTARIAN AQUI
+  # Se ejecutarían despues de los tasks, 
+  # antes de los handlers de los tasks
+  
+  tasks:
+
+    - debug:
+        msg: Esta es la primera tarea
+      notify: Handler tarea 1
+      changed_when: True
+      
+#    - include_role:
+#        name: instalacion
+    
+    - debug:
+        msg: Esta es la segunda tarea
+      notify: Handler tarea 2
+      changed_when: True
+      
+    # Esta etiqueta fuerza que los handlers que se 
+    # hubieran registrado hasta el momento se ejecuten en este punto
+    - meta: flush_handlers
+
+    - debug:
+        msg: Esta es la tercera tarea
+      notify: Handler tarea 3
+      changed_when: True
+      
+    - debug:
+        msg: Esta es la tarea final
+
+ # Los post-tasks on tareas que se ejecutan despues de las tareas
+ # PERO antes de ejecutarse, 
+    #se ejecutan los handlers asociados a los tasks
+  post_tasks:
+
+    - debug:
+        msg: Esta es la primera POSTTAREA
+      notify: Handler POSTTAREA 1
+      changed_when: True
+
+  handlers:
+    - name: Handler tarea 1
+      debug: 
+        msg: Soy el handler de la tarea 1
+
+    - name: Handler tarea 2
+      debug: 
+        msg: Soy el handler de la tarea 2
+
+    - name: Handler tarea 3
+      debug: 
+        msg: Soy el handler de la tarea 3
+
+    - name: Handler PRETAREA 1
+      debug: 
+        msg: Soy el handler de la PRETAREA 1
+
+    - name: Handler POSTTAREA 1
+      debug: 
+        msg: Soy el handler de la POSTTAREA 1

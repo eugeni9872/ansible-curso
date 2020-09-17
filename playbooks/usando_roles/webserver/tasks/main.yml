@@ -1,0 +1,6 @@
+---
+- import_tasks: instalacion.yml
+- import_tasks: actualizacion.yml
+- import_tasks: configuracion.yml
+- import_tasks: servicios.yml
+- import_tasks: test.yml

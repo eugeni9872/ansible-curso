@@ -1,0 +1,24 @@
+ansible_host: 172.17.0.2
+# nginx_port: 8080
+# mensaje_comprobar_nginx: 'Soy el fichero de la web'
+# nginx_server_name: 172.17.0.2
+
+db_role_file_path: /dbpath/
+db_role_info: 
+ -   connection_name: FROM_MAIN
+     max_active: 1
+     max_idle: 330
+     max_wait: 2
+     username: "{{ DB1_USERNAME_SEC }}"
+     password: "{{ DB1_PASSWORD_SEC }}"
+     driver_class_name: com.mysql.jdbc.Driver
+     uri: "jdbc:mysql://localhost:3306/javatest"
+     
+ -   connection_name: NEW_AHH
+     max_active: 1
+     max_idle: 330
+     max_wait: 2
+     username: "{{ DB2_USERNAME_SEC }}"
+     password: "{{ DB2_PASSWORD_SEC }}"
+     driver_class_name: com.mysql.jdbc.Driver
+     uri: "jdbc:mysql://localhost:3306/javatest"

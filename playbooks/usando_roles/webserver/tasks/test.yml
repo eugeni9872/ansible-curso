@@ -1,0 +1,22 @@
+
+# Comprobación
+# Revisar el puerto: 80
+- name: Asegurarme que el puerto 80 está funcionando
+  wait_for: 
+    host: "{{ ansible_hostname }}"
+    port: "{{ nginx_port }}"
+    timeout: 10                        # Espero un poco a ver si el puerto conecta
+    state: started                     # El puerto debe estar abierto para escucha
+    delay: 2                           # Espera un par de segundos antes de comenzar a mirar si está abierto
+    connect_timeout: 2                 # Espera un par de segundos entre intentos
+
+# Comprobación de que el servidor devuelve contenido: COHERENTE!!!!
+- name: Comprobar que nginx contesta algo adecuado
+  uri:
+    url: "http://{{ nginx_server_name }}:{{ nginx_port }}"
+    return_content: yes
+    status_code: 200                   # Conexión http exitosa
+    timeout: 10                        # Si en 10 seg no lo tienes, falla
+  register: conexion
+  failed_when:  nginx_test_message not in conexion.content
+  
