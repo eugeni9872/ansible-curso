@@ -1,7 +1,7 @@
 ---
 web_test_connection_protocol: http
-web_test_server_name: 172.17.0.2
+web_test_server_name: CHANGE_ME
 web_test_port: 80
 web_test_response_code: 200
 web_test_timeout: 10
-web_test_message: Soy el fichero de la web
+web_test_message: CHANGE_ME

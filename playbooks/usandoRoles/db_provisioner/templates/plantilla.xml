@@ -1,0 +1,17 @@
+<Server>
+    {% for base_datos in db_provisioner_info %}
+    <Context>
+      <Resource name="jdbc/{{ base_datos.nombre_conexion }}" 
+                auth="Container" 
+                type="javax.sql.DataSource"
+                
+                maxActive="{{ base_datos.max_active }}" 
+                maxIdle="{{ base_datos.max_idle }}" 
+                maxWait="{{ base_datos.max_wait }}"
+                username="{{ base_datos.username }}"
+                password="{{ base_datos.nombre_conexion }}"
+                driverClassName="{{ base_datos.password }}"
+                url="{{ base_datos.url }}"/>
+    </Context>
+    {% endfor %}
+<Server>

@@ -1,0 +1,14 @@
+---
+# tasks file for db_provisioner
+
+# Asegurarme que tenemos el directorio
+- name: Crear el directio del fichero de aprovisionamiento de bd
+  file:
+    path: "{{ db_provisioner_file_path }}"
+    state: directory
+
+# Crear el archivo en la directorio
+- name: Crear el archvo de aprovisionamiento de bd
+  template: 
+    src: templates/plantilla.xml
+    dest: "{{ db_provisioner_file_path }}/server.xml"

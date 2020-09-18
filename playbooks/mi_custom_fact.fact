@@ -1,1 +1,5 @@
-"este es el valor de mi custom fact"
+{
+    "nombre": "MI SERVIDOR",
+    "SO": "Soy un UBUNTU!",
+    "CPUS": 16
+}

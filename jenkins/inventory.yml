@@ -1,0 +1,8 @@
+---
+all:
+    hosts:
+        localhost:
+            ansible_connection: local
+            jenkins_volume_path: /home/ubuntu/environment/jenkins/data
+            jenkins_path: /home/ubuntu/environment/jenkins
+            ansible_python_interpreter: /usr/bin/python3

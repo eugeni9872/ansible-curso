@@ -6,7 +6,7 @@
   # Contra qué máquinas/entornos vamos a trabajar
 - hosts: 172.17.0.2
   # Para desactivar Gathering Facts, lo pondriamos a 'False'
-  gather_facts: False
+  gather_facts: True
 
   # Decidir el usuario con el que conectarnos a un entorno
   remote_user: root
@@ -37,12 +37,16 @@
   
   tasks:
     
+  ##################################################################
     # Creación de un CUSTOM FACT constante
+  ##################################################################
     # Crear un directorio en la máquina con ruta: /etc/ansible/facts.d
     - name: Crear directorio de CUSTOM FACTS en entorno remoto
       file:
         path: /etc/ansible/facts.d
         state: directory
+      tags:
+        - create_facts
     
     # Crear un fichero con extensión .fact
     # El contenido del fichero, con el valor del fact
@@ -51,6 +55,18 @@
         src: mi_custom_fact.fact
         dest: /etc/ansible/facts.d/mi_custom_fact.fact
         mode: '644'
+      tags:
+        - create_facts
+    
+    # Crear un fichero con extensión .fact
+    # El contenido del fichero, con el valor del fact
+    - name: Generar el fichero con el CUSTOM FACT en entorno remoto
+      copy:
+        content: '"este es el valor del custom fact 2"'
+        dest: /etc/ansible/facts.d/mi_custom_fact_2.fact
+        mode: '644'
+      tags:
+        - create_facts
     
     # NOTA: Sobre JSON
     #  
@@ -89,5 +105,34 @@
     #      clave5: 
     #         subclave1: 54
     #         subclave2: false 
-
     
+  ##################################################################
+    # Creación de un CUSTOM FACT dinamico
+  ##################################################################
+    # Crear un fichero con extensión .fact
+    # El contenido del fichero, es un ejecutable
+    - name: Copiar el fichero con el CUSTOM FACT en entorno remoto
+      copy:
+        src: mi_custon_fact_dinamico.fact
+        dest: /etc/ansible/facts.d/mi_custon_fact_dinamico.fact
+        mode: '755'
+      tags:
+        - create_facts   
+        
+    - name: Copiar el fichero con el CUSTOM FACT en entorno remoto
+      copy:
+        src: mi_custon_fact_dinamico_python.fact
+        dest: /etc/ansible/facts.d/mi_custon_fact_dinamico_python.fact
+        mode: '755'
+      tags:
+        - create_facts
+        
+        
+    - name: Mostrar los CUSTOM FACTS del entorno
+      debug:
+        msg: "{{ ansible_local }}"
+
+
+    - name: Mostrar un CUSTOM FACT concreto
+      debug:
+        msg: "{{ ansible_local.mi_custom_fact.CPUS }}"

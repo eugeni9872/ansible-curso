@@ -1,0 +1,51 @@
+---
+- hosts: all
+  gather_facts: False
+  remote_user: root
+  become: True
+  
+  vars:
+    paquetes: 
+        - docker
+        - docker-compose
+        - python3-pip
+    paquetes_python: 
+        - docker
+        - docker-compose
+
+  tasks:
+    - name: Actualizar el repo
+      apt:
+        update-cache: True
+
+    - name: Instalar paquetes de docker
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ paquetes }}"
+     
+    - pip:
+        name: "{{ item }}"
+        executable: pip3
+      loop: "{{ paquetes_python }}"
+        
+    - name: Asegurar que tenemos la carpta de trabajo
+      file:
+        path: "{{ jenkins_path }}"     
+        state: directory
+        mode: '777'        
+        
+    - name: Asegurar que tenemos la carpta de trabajo
+      file:
+        path: "{{ jenkins_volume_path }}"     
+        state: directory
+        mode: '777'
+        
+    - name: Generar template de docker-compose
+      template:
+        src: template.yml
+        dest: "{{ jenkins_path }}/docker-compose.yml"
+    
+    - name: Ejecutar el fichero con docker-compose
+      docker_compose:
+        project_src: "{{ jenkins_path }}"

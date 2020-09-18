@@ -1,0 +1,24 @@
+## USO ESPECIFICO. Un despliegue que voy a hacer... en los servidores de desarrollo
+#                                                   de mi web principal en todos los servidores
+
+# ansible-playbook -i ... playbook.YO.yml --tags test
+# ansible-playbook -i ... playbook.YO.yml --skip-tags test
+- hosts: desa_web
+  remote_user: root
+  
+  tasks:
+    - include_role: 
+        name: db_provisioner
+      vars:
+        history: "{{ db_provisioner_file_path_SEC }}"
+                                  # Esta variable se sumistra en fichero cifrado independiente
+# ansible-vault decrypt <fichero_securizado> --ask-vault-pass
+# ansible-vault encrypt <fichero_securizado> --ask-vault-pass
+# ansible-playbook -i <inventario> -e "@<fichero_securizado>" --ask-vault-pass
+# ansible-playbook -i <inventario> -e "@<fichero_NO_securizado>"
+# ansible-playbook -i <inventario> -e "@<fichero_securizado>" -e "@<fichero_NO_securizado>" --ask-vault-pass
+
+# ansible-vault view <fichero_securizado> --ask-vault-pass
+
+# CAMBIAR LA CONTRASEÑA
+# ansible-vault rekey <fichero_securizado> --ask-vault-pass

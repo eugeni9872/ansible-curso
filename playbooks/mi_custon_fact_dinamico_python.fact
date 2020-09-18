@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+fact={ 'NOMBRE': 'Ivan' , 'lista':[1,2,3,4,5] }
+#fact=True
+#fact='Este es mi servidor'
+#fact= 3+5/12
+
+import json
+
+print( json.dumps(fact) )

@@ -1,0 +1,23 @@
+## USO ESPECIFICO. Un despliegue que voy a hacer... en los servidores de desarrollo
+#                                                   de mi web principal en todos los servidores
+
+# ansible-playbook -i ... playbook.YO.yml --tags test
+# ansible-playbook -i ... playbook.YO.yml --skip-tags test
+- hosts: desa_web
+  remote_user: root
+  
+#  roles:
+#    - role: web_test
+#      vars:
+#        web_test_server_name: "{{nginx_server_name}}"
+#        web_test_message: "Welcome to nginx"
+        #- web_test_connection_protocol: http
+        #- web_test_port: 80
+        #- web_test_response_code: 200
+        #- web_test_timeout: 10
+  tasks:
+    - include_role: 
+        name: web_test
+      vars:
+        web_test_server_name: "{{nginx_server_name}}"
+        web_test_message: "Welcome to nginx"

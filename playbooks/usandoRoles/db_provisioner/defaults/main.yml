@@ -1,0 +1,24 @@
+---
+db_provisioner_file_path: /etc/tomcat/conf
+db_provisioner_info: 
+    -   nombre_conexion: CHANGE-ME
+        max_active: 50
+        max_idle: 10
+        max_wait: 60000
+        username: CHANGE-ME
+        password: CHANGE-ME
+        driver_class_name: CHANGE-ME
+        url: CHANGE-ME
+
+#    -   nombre_conexion: CHANGE-ME
+#        max_active: 50
+#        max_idle: 10
+#        max_wait: 60000
+#        username: CHANGE-ME
+#        password: CHANGE-ME
+#        driver_class_name: CHANGE-ME
+#        url: CHANGE-ME
+
+# Lista de diccionarios
+# db_provisioner_info[0]        -> Todo el primer diccionario
+# db_provisioner_info[0].url    -> Del primer diccionario, la URL

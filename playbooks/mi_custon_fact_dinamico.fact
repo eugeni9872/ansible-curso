@@ -1,0 +1,6 @@
+#!/bin/bash
+
+mihostname=$(hostname)
+
+# Este programa debe devolver JSON
+echo "\""Ni maquina se llama: $mihostname"\""

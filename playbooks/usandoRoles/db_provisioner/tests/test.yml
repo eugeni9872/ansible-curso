@@ -2,4 +2,4 @@
 - hosts: localhost
   remote_user: root
   roles:
-    - db_role
+    - db_provisioner

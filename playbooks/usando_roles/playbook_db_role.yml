@@ -1,6 +1,0 @@
-- hosts: desa_web
-  remote_user: root
-  
-  tasks:
-    - include_role:
-        name: db_role
